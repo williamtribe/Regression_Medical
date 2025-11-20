@@ -1,0 +1,5 @@
+cvxpy
+numpy
+pandas
+statsmodels
+kagglehub[pandas-datasets]
