@@ -49,13 +49,24 @@ def _dummy_encode(df: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
 
 def load_kaggle_csv(file_path: str, pandas_kwargs: dict | None = None) -> pd.DataFrame:
     pandas_kwargs = pandas_kwargs or {}
-    df = load_dataset(
-        KaggleDatasetAdapter.PANDAS,
-        "anikannal/cms-synthetic-data",
-        file_path,
-        pandas_kwargs=pandas_kwargs,
-    )
-    return df
+    try:
+        df = load_dataset(
+            KaggleDatasetAdapter.PANDAS,
+            "anikannal/cms-synthetic-data",
+            file_path,
+            pandas_kwargs=pandas_kwargs,
+        )
+        return df
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(
+            "Could not find the requested file inside the CMS synthetic dataset. "
+            "Verify the path (e.g., `Beneficiary_Summary_File.csv`) matches the Kaggle ZIP contents."
+        ) from exc
+    except Exception as exc:  # pragma: no cover - defensive user guidance
+        raise RuntimeError(
+            "Kaggle download failed. Ensure `kagglehub` is installed, Kaggle API credentials are configured, "
+            "and you have accepted the dataset terms (https://www.kaggle.com/datasets/anikannal/cms-synthetic-data)."
+        ) from exc
 
 
 def build_design_matrix(df: pd.DataFrame, config: FairnessConfig) -> tuple[pd.DataFrame, pd.Series]:
